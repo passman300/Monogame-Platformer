@@ -10,8 +10,17 @@ namespace PASS3
 {
     public class Player
     {
+        // enum for the player's direction
+        enum FaceDirection
+        {
+            Left = -1,
+            Right = 1,
+        }
+
+        // local content manger
         ContentManager content;
 
+        // used to view hitboxes
         GraphicsDevice graphicsDevice;
 
         // player states
@@ -20,10 +29,6 @@ namespace PASS3
         private const byte JUMP = 2;
         private const byte CROUCH = 3;
         private const byte DEAD = 4;
-
-        // player direction
-        private const byte DIR_LEFT = 0;
-        private const byte DIR_RIGHT = 1;
 
         // player body parts
         private const int FEET = 0;
@@ -44,7 +49,6 @@ namespace PASS3
         private const float TOLERANCE = FRICTION * 0.9f;
 
         // player's sprites 
-        private Texture2D playerImg;
         private Texture2D[] playerImgs = new Texture2D[5];
         private Animation[] playerAnims = new Animation[5];
 
@@ -60,7 +64,7 @@ namespace PASS3
 
         // store player states
         private byte playerState;
-        private byte playerDir;
+        private FaceDirection playerDir;
         private SpriteEffects AnimFlip;
         private bool isGround;
         private bool isIdle;
@@ -130,9 +134,6 @@ namespace PASS3
         //load the given content of the player model
         public void LoadPlayer()
         {
-            // load general player image
-            playerImg = content.Load<Texture2D>("Images/Player/PlayerImage");
-
             // load player animation sheets
             playerImgs[IDLE] = content.Load<Texture2D>("Animations/Player/Idle");
             playerImgs[WALK] = content.Load<Texture2D>("Animations/Player/Walk");
@@ -239,7 +240,7 @@ namespace PASS3
             {
                 // update the player states
                 playerState = WALK;
-                playerDir = DIR_LEFT;
+                playerDir = FaceDirection.Left;
                 isIdle = false;
 
                 // update player speed
@@ -253,7 +254,7 @@ namespace PASS3
             {
                 // update the player states
                 playerState = WALK;
-                playerDir = DIR_RIGHT;
+                playerDir = FaceDirection.Left;
                 isIdle = false;
 
                 // update player speed

@@ -60,7 +60,6 @@ namespace PASS3
             get { return rec; }
         }
 
-
         // get tile collision type property
         public TileCollision GetCollision
         {
