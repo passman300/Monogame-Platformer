@@ -217,8 +217,6 @@ namespace PASS3
         // update player
         public void Update(GameTime gametime, Tile[,] tiles)
         {
-            
-            
             prevKb = kb;
             kb = Keyboard.GetState();
 
