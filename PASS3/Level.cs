@@ -43,11 +43,6 @@ namespace PASS3
             get { return tiles.GetLength(1); }
         }
 
-        //// property that gets each tile
-        //public Tile GetTile
-        //{
-        //    get { return }
-        //}
 
         // create a new level
         public Level(ContentManager content, int levelNum, Vector2 spawnPoint, Player player)

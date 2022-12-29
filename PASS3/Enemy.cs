@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace PASS3
 {
-    class Enemy
+    public class Enemy
     {
         // enum on where the enemy is facing
         public enum FaceDirection
@@ -23,31 +23,21 @@ namespace PASS3
             Right = 1,
         }
 
-        // type of enemy
-        public enum EnemyType
-        {
-            Walker = 1,
-            Ghast = 2,
-        }
-
-        // local content manger
-        ContentManager content;
-
         // used to view hitboxes
         GraphicsDevice graphicsDevice;
 
-        // enemy type
-        private byte type;
+        // enemy sprites
+        private Dictionary<byte, Animation> aniDict;
 
-        // enemy sprite
-        private Texture2D enemyImg;
+        // enemy state
+        private byte defaultState;
+        private byte state;
 
         // enemy location
         private Vector2 startPos;
         private Vector2 pos;
 
         // enemy rectangles
-        private Rectangle animRec;
         private Rectangle rec;
 
         // enemy spd
@@ -61,16 +51,44 @@ namespace PASS3
         private float maxHealth;
         private float currHealth;
 
-        // constructor for enemy
-        public Enemy(Texture2D texture, Vector2 location, FaceDirection dir, float maxHealth, Vector2 spd)
-        {
-            // pass the enemy texture
-            enemyImg = texture;
 
-            // pass the start location
-            startPos = location;
-            
-            // pass the enemy direction
+        // set and get enemy state
+        public byte EnemyState
+        {
+            set { state = value; }
+            get { return state; }
+        }
+
+        // get location property
+        public Vector2 GetLoc
+        {
+            get { return pos; }
+        }
+
+        // get enemy rectangle
+        public Rectangle GetRec
+        {
+            get { return rec; }
+        }
+
+
+        // constructor for enemy
+        public Enemy(byte state, Dictionary<byte, Animation> aniDict, Rectangle rec, FaceDirection dir, float maxHealth, Vector2 spd)
+        {
+            // default state
+            defaultState = state;
+            this.state = state;
+
+            // store the enemy texture
+            this.aniDict = aniDict;
+
+            // store the enemys rectangle
+            this.rec = rec;
+
+            // store the start location
+            startPos = new Vector2(rec.X, rec.Y);
+
+            // store the enemy direction
             startDir = dir;
             this.dir = dir;
 
@@ -84,7 +102,7 @@ namespace PASS3
                 enemySpd = new Vector2(-1f * spd.X, spd.Y);
             }
 
-            // pass the enemy health
+            // store the enemy health
             this.maxHealth = maxHealth;
             currHealth = maxHealth;
         }
@@ -106,6 +124,19 @@ namespace PASS3
         // resets the enemy
         public void Reset()
         {
+            // reset enemy state
+            state = defaultState;
+
+            // reset all animtions
+            foreach (KeyValuePair<byte, Animation> ele in aniDict)
+            {
+                Animation ani = ele.Value;
+
+                // reset the animation frame, and isAnimating
+                ani.isAnimating = true;
+                ani.curFrame = 0;
+            }
+
             // reset the enemy location
             pos = startPos;
 
@@ -117,9 +148,14 @@ namespace PASS3
         }
 
         // update the enemy
-        public void Update()
+        public void UpdatePos()
         {
             pos += enemySpd;
+        }
+
+        public void UpdateAnim(GameTime gameTime)
+        {
+            aniDict[state].Update(gameTime);
         }
 
         // draw the enemy
@@ -127,8 +163,21 @@ namespace PASS3
         {
             spriteBatch.Begin();
 
+            // temporary flip variable
+            SpriteEffects animFlip;
+            if (dir == FaceDirection.Left)
+            {
+                animFlip = SpriteEffects.FlipHorizontally;
+            }
+            else
+            {
+                animFlip = SpriteEffects.None;
+            }
 
-            spriteBatch.Draw(enemyImg, rec, Color.White);
+            // draw the enemy
+            aniDict[state].Draw(spriteBatch, Color.White, animFlip);
+
+            spriteBatch.End();
         }
 
 

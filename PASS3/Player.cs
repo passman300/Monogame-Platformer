@@ -17,12 +17,6 @@ namespace PASS3
             Right = 1,
         }
 
-        // local content manger
-        ContentManager content;
-
-        // used to view hitboxes
-        GraphicsDevice graphicsDevice;
-
         // player states
         private const byte IDLE = 0;
         private const byte WALK = 1;
@@ -48,6 +42,12 @@ namespace PASS3
         // minimum speed of player when on ground
         private const float TOLERANCE = FRICTION * 0.9f;
 
+        // local content manger
+        ContentManager content;
+
+        // used to view hitboxes
+        GraphicsDevice graphicsDevice;
+
         // player's sprites 
         private Texture2D[] playerImgs = new Texture2D[5];
         private Animation[] playerAnims = new Animation[5];
@@ -65,7 +65,6 @@ namespace PASS3
         // store player states
         private byte playerState;
         private FaceDirection playerDir;
-        private SpriteEffects AnimFlip;
         private bool isGround;
         private bool isIdle;
 
@@ -201,7 +200,7 @@ namespace PASS3
             }
         }
 
-        private void LoadPlayerAnimRec(GameTime gameTime)
+        private void UpdatePlayerAnimRec(GameTime gameTime)
         {
             // update the player's animation
             playerAnims[playerState].Update(gameTime);
@@ -245,8 +244,7 @@ namespace PASS3
                 playerSpd.X -= ACCEL;
                 playerSpd.X = MathHelper.Clamp(playerSpd.X, -maxSpdX, maxSpdX);
 
-                // flip animation, so it faces left
-                AnimFlip = Animation.FLIP_HORIZONTAL;
+                
             }
             else if (kb.IsKeyDown(Keys.D))
             {
@@ -259,8 +257,6 @@ namespace PASS3
                 playerSpd.X += ACCEL;
                 playerSpd.X = MathHelper.Clamp(playerSpd.X, -maxSpdX, maxSpdX);
 
-                // don't flip the animation. Keep it facing right
-                AnimFlip = Animation.FLIP_NONE;
             }
             
             if (kb.IsKeyDown(Keys.Space) && isGround)
@@ -336,7 +332,7 @@ namespace PASS3
             UpdateCollision(tiles);
 
             // update the player's animation
-            LoadPlayerAnimRec(gametime);
+            UpdatePlayerAnimRec(gametime);
 
             LoadPlayerRecs();
             
@@ -345,19 +341,30 @@ namespace PASS3
         {
             spriteBatch.Begin();
 
+            // temporary flip variable
+            SpriteEffects animFlip;
+            if (playerDir == FaceDirection.Left)
+            {
+                animFlip = SpriteEffects.FlipHorizontally;   
+            }
+            else
+            {
+                animFlip = SpriteEffects.None;
+            }
+
             switch (playerState)
             {
                 case IDLE:
-                    playerAnims[IDLE].Draw(spriteBatch, Color.White, AnimFlip);
+                    playerAnims[IDLE].Draw(spriteBatch, Color.White, animFlip);
                     break;
                 case WALK:
-                    playerAnims[WALK].Draw(spriteBatch, Color.White, AnimFlip);
+                    playerAnims[WALK].Draw(spriteBatch, Color.White, animFlip);
                     break;
                 case JUMP:
-                    playerAnims[JUMP].Draw(spriteBatch, Color.White, AnimFlip);
+                    playerAnims[JUMP].Draw(spriteBatch, Color.White, animFlip);
                     break;
                 case CROUCH:
-                    playerAnims[CROUCH].Draw(spriteBatch, Color.White, Animation.FLIP_NONE);
+                    playerAnims[CROUCH].Draw(spriteBatch, Color.White, animFlip);
                     break;
                 case DEAD:
                     break;
@@ -377,7 +384,6 @@ namespace PASS3
         // check if player has collision
         private void UpdateCollision(Tile[,] tiles)
         {
-            
             // store the size of the 2D array tile
             int height = tiles.GetLength(0);
             int width = tiles.GetLength(1);
@@ -388,7 +394,6 @@ namespace PASS3
             {
                 for (int row = 0; row < height; row++)
                 {
-
                     bool collision = false;
 
                     if (tiles[row, col].GetCollision != TileCollision.Passable)
