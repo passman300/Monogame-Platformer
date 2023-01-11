@@ -23,22 +23,33 @@ namespace PASS3
             Right = 1,
         }
 
+        // states of the enemy
+        public enum EnemeyState
+        {
+            Walk = 0,
+            Dead = 1,
+            Hurt = 2,
+        }
+
+        // store the local content manger
+        ContentManager content;
+
         // used to view hitboxes
         GraphicsDevice graphicsDevice;
 
         // enemy sprites
-        private Dictionary<byte, Animation> aniDict;
+        private Dictionary<EnemeyState, Animation> aniDict;
 
         // enemy state
-        private byte defaultState;
-        private byte state;
+        private EnemeyState defaultState;
+        private EnemeyState state;
 
         // enemy location
         private Vector2 startPos;
         private Vector2 pos;
 
-        // enemy rectangles
-        private Rectangle rec;
+        // enemy spawn point
+        private Vector2 spawn;
 
         // enemy spd
         private Vector2 enemySpd;
@@ -53,7 +64,7 @@ namespace PASS3
 
 
         // set and get enemy state
-        public byte EnemyState
+        public EnemeyState EnemyState
         {
             set { state = value; }
             get { return state; }
@@ -65,28 +76,25 @@ namespace PASS3
             get { return pos; }
         }
 
-        // get enemy rectangle
-        public Rectangle GetRec
-        {
-            get { return rec; }
-        }
-
 
         // constructor for enemy
-        public Enemy(byte state, Dictionary<byte, Animation> aniDict, Rectangle rec, FaceDirection dir, float maxHealth, Vector2 spd)
+        public Enemy(ContentManager content, GraphicsDevice graphicsDevice, EnemeyState state, Vector2 spawn, FaceDirection dir, float maxHealth, Vector2 spd)
         {
+            // pass the local content manger
+            this.content = content;
+
+            // pass the local graphics device
+            this.graphicsDevice = graphicsDevice;
+
             // default state
             defaultState = state;
             this.state = state;
 
-            // store the enemy texture
-            this.aniDict = aniDict;
-
-            // store the enemys rectangle
-            this.rec = rec;
+            // store the enemys spawn point
+            this.spawn = spawn;
 
             // store the start location
-            startPos = new Vector2(rec.X, rec.Y);
+            startPos = spawn;
 
             // store the enemy direction
             startDir = dir;
@@ -128,7 +136,7 @@ namespace PASS3
             state = defaultState;
 
             // reset all animtions
-            foreach (KeyValuePair<byte, Animation> ele in aniDict)
+            foreach (KeyValuePair<EnemeyState, Animation> ele in aniDict)
             {
                 Animation ani = ele.Value;
 
@@ -152,34 +160,6 @@ namespace PASS3
         {
             pos += enemySpd;
         }
-
-        public void UpdateAnim(GameTime gameTime)
-        {
-            aniDict[state].Update(gameTime);
-        }
-
-        // draw the enemy
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Begin();
-
-            // temporary flip variable
-            SpriteEffects animFlip;
-            if (dir == FaceDirection.Left)
-            {
-                animFlip = SpriteEffects.FlipHorizontally;
-            }
-            else
-            {
-                animFlip = SpriteEffects.None;
-            }
-
-            // draw the enemy
-            aniDict[state].Draw(spriteBatch, Color.White, animFlip);
-
-            spriteBatch.End();
-        }
-
 
     }
 }

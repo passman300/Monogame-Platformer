@@ -22,6 +22,9 @@ namespace PASS3
         // store the tiles of an level in 2D array
         private Tile[,] tiles;
 
+        // store the enemies of an level in a 2D array
+        private Runner[,] enemies;
+
         // store the current level
         public int levelNum;
 
@@ -139,6 +142,25 @@ namespace PASS3
             return new Tile(content.Load<Texture2D>("Images/Tiles/" + tileName), collision, tilePos);
         }
 
+
+        // building block to load 
+        private void LoadEnemies(Stream filePath)
+        {
+            // create a file reader
+            StreamReader reader = new StreamReader(filePath);
+
+            // temp
+            int width;
+
+
+        }
+
+        //private Runner LoadRunner(Vector2 loc)
+        //{
+        //    // create each enemy
+        //    //return new Runner(content, GraphicsDevice graphicsDevice, Enemy.EnemeyState.Walk, )
+        //}
+        
         // updates the level and player
         public void UpdateLevel(GameTime gameTime)
         {

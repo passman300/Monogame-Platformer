@@ -95,7 +95,6 @@ namespace PASS3
         KeyboardState prevKb;
         KeyboardState kb;
 
-
         public int SetMaxHealth
         {
             set { maxHealth = value; }
@@ -250,7 +249,7 @@ namespace PASS3
             {
                 // update the player states
                 playerState = WALK;
-                playerDir = FaceDirection.Left;
+                playerDir = FaceDirection.Right;
                 isIdle = false;
 
                 // update player speed
@@ -370,6 +369,7 @@ namespace PASS3
                     break;
             }
 
+
             if (showCollisionRecs)
             {
                 playerVisibleRecs[HEAD].Draw(spriteBatch, Color.Yellow * 0.5f, true);
@@ -396,53 +396,56 @@ namespace PASS3
                 {
                     bool collision = false;
 
-                    if (tiles[row, col].GetCollision != TileCollision.Passable)
+                    if (tiles[row, col] != null)
                     {
-                        Rectangle tileRec = tiles[row, col].GetRec;
-
-                        // stage 1: check collision with general rectangle
-                        if (playerRec.Intersects(tileRec))
+                        if (tiles[row, col].GetCollision != TileCollision.Passable)
                         {
-                            LoadPlayerRecs();
+                            Rectangle tileRec = tiles[row, col].GetRec;
 
-                            // stage 2: check collision with player parts
-                            // only check feet collision if vertical vector is going down or isGround
-                            if (verticalVec == -1 || verticalVec == 0)
+                            // stage 1: check collision with general rectangle
+                            if (playerRec.Intersects(tileRec))
                             {
-                                if (playerRecs[FEET].Intersects(tileRec))
+                                LoadPlayerRecs();
+
+                                // stage 2: check collision with player parts
+                                // only check feet collision if vertical vector is going down or isGround
+                                if (verticalVec == -1 || verticalVec == 0)
                                 {
-                                    playerRec.Y = tileRec.Y - playerRec.Height;
-                                    playerPos.Y = playerRec.Y;
-                                    playerSpd.Y = 0f;
-                                    isGround = true;
+                                    if (playerRecs[FEET].Intersects(tileRec))
+                                    {
+                                        playerRec.Y = tileRec.Y - playerRec.Height;
+                                        playerPos.Y = playerRec.Y;
+                                        playerSpd.Y = 0f;
+                                        isGround = true;
+                                    }
                                 }
-                            }
-                            // only check head if vertical vector is going up and no ground
-                            else if (verticalVec == 1 && !isGround)
-                            {
-                                if (playerRecs[HEAD].Intersects(tileRec))
+                                // only check head if vertical vector is going up and no ground
+                                else if (verticalVec == 1 && !isGround)
                                 {
-                                    playerRec.Y = tileRec.Y + tileRec.Height;
-                                    playerPos.Y = playerRec.Y;
-                                    playerSpd.Y = playerSpd.Y * -1;
+                                    if (playerRecs[HEAD].Intersects(tileRec))
+                                    {
+                                        playerRec.Y = tileRec.Y + tileRec.Height;
+                                        playerPos.Y = playerRec.Y;
+                                        playerSpd.Y = playerSpd.Y * -1;
+                                        collision = true;
+                                    }
+                                }
+
+                                // check other sub-hitboxes
+                                if (playerRecs[LEFT].Intersects(tileRec))
+                                {
+                                    playerRec.X = tileRec.X + tileRec.Width;
+                                    playerPos.X = playerRec.X;
+                                    playerSpd.X = 0f; // or multiply by -1 to 
                                     collision = true;
                                 }
-                            }
-
-                            // check other sub-hitboxes
-                            if (playerRecs[LEFT].Intersects(tileRec))
-                            {
-                                playerRec.X = tileRec.X + tileRec.Width;
-                                playerPos.X = playerRec.X;
-                                playerSpd.X = 0f; // or multiply by -1 to 
-                                collision = true;
-                            }
-                            if (playerRecs[RIGHT].Intersects(tileRec))
-                            {
-                                playerRec.X = tileRec.X - playerRec.Width;
-                                playerPos.X = playerRec.X;
-                                playerSpd.X = 0f; // or multiply by -1 to bounce
-                                collision = true;
+                                if (playerRecs[RIGHT].Intersects(tileRec))
+                                {
+                                    playerRec.X = tileRec.X - playerRec.Width;
+                                    playerPos.X = playerRec.X;
+                                    playerSpd.X = 0f; // or multiply by -1 to bounce
+                                    collision = true;
+                                }
                             }
                         }
                     }
