@@ -37,12 +37,12 @@ namespace PASS3
         // used to view hitboxes
         GraphicsDevice graphicsDevice;
 
-        // enemy sprites
-        private Dictionary<EnemeyState, Animation> aniDict;
-
         // enemy state
         private EnemeyState defaultState;
         private EnemeyState state;
+
+        // enemy rec
+        protected Rectangle rec;
 
         // enemy location
         private Vector2 startPos;
@@ -52,11 +52,11 @@ namespace PASS3
         private Vector2 spawn;
 
         // enemy spd
-        private Vector2 enemySpd;
+        protected Vector2 enemySpd;
 
         // enemy direction
         private FaceDirection startDir;
-        private FaceDirection dir;
+        protected FaceDirection dir;
 
         // enemy health variables
         private float maxHealth;
@@ -74,6 +74,13 @@ namespace PASS3
         public Vector2 GetLoc
         {
             get { return pos; }
+        }
+
+        // set and get enemy rec
+        public Rectangle EnemyRec
+        {
+            set { rec = value; }
+            get { return rec; }
         }
 
 
@@ -155,10 +162,15 @@ namespace PASS3
             dir = startDir;
         }
 
-        // update the enemy
-        public void UpdatePos()
+        //// update the enemy
+        //public void UpdatePos()
+        //{
+        //    pos += enemySpd;
+        //}
+
+        public virtual void Draw(SpriteBatch spriteBatch)
         {
-            pos += enemySpd;
+
         }
 
     }

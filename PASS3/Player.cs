@@ -31,7 +31,7 @@ namespace PASS3
         private const int RIGHT = 3;
 
         // store the force of gravity
-        private const float GRAV_ACCEL = 8f / 60;
+        private const float GRAV_ACCEL = 0.4f;
 
         // player's horizontal acceleration
         private const float ACCEL = 1.1f;
@@ -91,6 +91,11 @@ namespace PASS3
         // player's score
         private int score;
 
+        // player's health bar
+        private Texture2D healthBarImg;
+        private Vector2 healthBarSize;
+        private Vector2 healthBarLoc;
+
         // store user input
         KeyboardState prevKb;
         KeyboardState kb;
@@ -121,7 +126,7 @@ namespace PASS3
             // load speed variables
             playerSpd = Vector2.Zero;
             maxSpdX = 3f;
-            jumpSpd = -5.65f;
+            jumpSpd = -9.65f;
             verticalVec = 0;
 
             // load health variables
@@ -144,9 +149,14 @@ namespace PASS3
             playerAnims[JUMP] = new Animation(playerImgs[JUMP], 2, 2, 3, 0, 0, Animation.ANIMATE_ONCE, 4, playerPos, 2, true);
             playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 4, 1, 4, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
 
+            // load player's postion
             playerPos = spawnPoint;
 
+            // load player's sub-hitboxes
             LoadPlayerRecs();
+
+            // load player's health bar
+            healthBarImg = content.Load<Texture2D>("Images/Player/HealthBar");
         }
 
         // load the player's overall and 2 stage collision of rectangles
@@ -164,21 +174,21 @@ namespace PASS3
             // Size (width, height): 60% of width, 86% of height
             playerRecs[HEAD] = new Rectangle(playerRec.X + (int)(playerRec.Width * 0.5f) - (int)(playerRec.Width * 0.43f),
                                             playerRec.Y,
-                                            (int)(playerRec.Width * 0.86f), 
+                                            (int)(playerRec.Width * 0.86f),
                                             (int)(playerRec.Height * 0.10f));
 
             // Loc (x, y): LEFT of players horizontal axis, and under HEAD
             // Size (width, height): 50% of width, 75% of height
             playerRecs[LEFT] = new Rectangle(playerRec.X,
                                             playerRecs[HEAD].Y + playerRecs[HEAD].Height,
-                                            (int)(playerRec.Width * 0.5f), 
+                                            (int)(playerRec.Width * 0.5f),
                                             (int)(playerRec.Height * 0.75f));
 
             // Loc (x, y): RIGHT of LEFT rectangle, and under HEAD
             // Size (width, height): 45% of width, 25% of height
-            playerRecs[RIGHT] = new Rectangle(playerRecs[LEFT].X + playerRecs[LEFT].Width, 
+            playerRecs[RIGHT] = new Rectangle(playerRecs[LEFT].X + playerRecs[LEFT].Width,
                                              playerRecs[HEAD].Y + playerRecs[HEAD].Height,
-                                             (int)(playerRec.Width * 0.5f), 
+                                             (int)(playerRec.Width * 0.5f),
                                              (int)(playerRec.Height * 0.75f));
 
             // Loc (x, y): horizontally centered and under LEFT rec
@@ -229,7 +239,7 @@ namespace PASS3
                 isIdle = true;
                 playerState = IDLE;
             }
-            
+
 
             // change user with respect to player input
             if (kb.IsKeyDown(Keys.A))
@@ -243,7 +253,7 @@ namespace PASS3
                 playerSpd.X -= ACCEL;
                 playerSpd.X = MathHelper.Clamp(playerSpd.X, -maxSpdX, maxSpdX);
 
-                
+
             }
             else if (kb.IsKeyDown(Keys.D))
             {
@@ -257,7 +267,7 @@ namespace PASS3
                 playerSpd.X = MathHelper.Clamp(playerSpd.X, -maxSpdX, maxSpdX);
 
             }
-            
+
             if (kb.IsKeyDown(Keys.Space) && isGround)
             {
                 // update player state
@@ -321,70 +331,28 @@ namespace PASS3
             playerPos.X += playerSpd.X;
             playerPos.Y += playerSpd.Y;
 
-            Console.WriteLine(playerPos.ToString());
-
             // update the player's rectangle to the new player position
             playerRec.X = (int)playerPos.X;
             playerRec.Y = (int)playerPos.Y;
 
             // check collisions again
-            UpdateCollision(tiles);
+            UpdateTileCollision(tiles);
 
             // update the player's animation
             UpdatePlayerAnimRec(gametime);
 
             LoadPlayerRecs();
-            
-        }
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Begin();
-
-            // temporary flip variable
-            SpriteEffects animFlip;
-            if (playerDir == FaceDirection.Left)
-            {
-                animFlip = SpriteEffects.FlipHorizontally;   
-            }
-            else
-            {
-                animFlip = SpriteEffects.None;
-            }
-
-            switch (playerState)
-            {
-                case IDLE:
-                    playerAnims[IDLE].Draw(spriteBatch, Color.White, animFlip);
-                    break;
-                case WALK:
-                    playerAnims[WALK].Draw(spriteBatch, Color.White, animFlip);
-                    break;
-                case JUMP:
-                    playerAnims[JUMP].Draw(spriteBatch, Color.White, animFlip);
-                    break;
-                case CROUCH:
-                    playerAnims[CROUCH].Draw(spriteBatch, Color.White, animFlip);
-                    break;
-                case DEAD:
-                    break;
-            }
-
-
-            if (showCollisionRecs)
-            {
-                playerVisibleRecs[HEAD].Draw(spriteBatch, Color.Yellow * 0.5f, true);
-                playerVisibleRecs[LEFT].Draw(spriteBatch, Color.Red * 0.5f, true);
-                playerVisibleRecs[RIGHT].Draw(spriteBatch, Color.Blue * 0.5f, true);
-                playerVisibleRecs[FEET].Draw(spriteBatch, Color.Green * 0.5f, true);
-            }
-
-            spriteBatch.End();
         }
 
-        // check if player has collision
-        private void UpdateCollision(Tile[,] tiles)
+        private void UpdateHealthBar()
         {
-            // store the size of the 2D array tile
+
+        }
+
+        // check if player has collision with tiles
+        private void UpdateTileCollision(Tile[,] tiles)
+        {
+            // store the size of the 2D array tiles
             int height = tiles.GetLength(0);
             int width = tiles.GetLength(1);
 
@@ -426,7 +394,7 @@ namespace PASS3
                                     {
                                         playerRec.Y = tileRec.Y + tileRec.Height;
                                         playerPos.Y = playerRec.Y;
-                                        playerSpd.Y = playerSpd.Y * -1;
+                                        playerSpd.Y = GRAV_ACCEL;
                                         collision = true;
                                     }
                                 }
@@ -436,14 +404,14 @@ namespace PASS3
                                 {
                                     playerRec.X = tileRec.X + tileRec.Width;
                                     playerPos.X = playerRec.X;
-                                    playerSpd.X = 0f; // or multiply by -1 to 
+                                    playerSpd.X = 0f;
                                     collision = true;
                                 }
                                 if (playerRecs[RIGHT].Intersects(tileRec))
                                 {
                                     playerRec.X = tileRec.X - playerRec.Width;
                                     playerPos.X = playerRec.X;
-                                    playerSpd.X = 0f; // or multiply by -1 to bounce
+                                    playerSpd.X = 0f;
                                     collision = true;
                                 }
                             }
@@ -453,6 +421,81 @@ namespace PASS3
             }
         }
 
-        // check if 
+        // check if player has collision with enemy
+        private void UpdateEnemyCollision(Enemy[,] enemies)
+        {
+            // store the size of the 2D array enemies
+            int height = enemies.GetLength(0);
+            int width = enemies.GetLength(1);
+
+            for (int col = 0; col < width; col++)
+            {
+                for (int row = 0; row < height; row++)
+                {
+                    bool collision = false;
+
+                    if (enemies[row, col] != null)
+                    {
+                        // check if there is intersection with enemy
+                        if (playerRec.Intersects(enemies[row, col].EnemyRec))
+                        {
+                            // check what type of enemy
+                            if (enemies[row, col] is Runner)
+                            {
+                                currHealth -= ((Runner)(enemies[row, col])).GetDamage;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Begin();
+
+            // temporary flip variable
+            SpriteEffects animFlip;
+            if (playerDir == FaceDirection.Left)
+            {
+                animFlip = SpriteEffects.FlipHorizontally;
+            }
+            else
+            {
+                animFlip = SpriteEffects.None;
+            }
+
+            switch (playerState)
+            {
+                case IDLE:
+                    playerAnims[IDLE].Draw(spriteBatch, Color.White, animFlip);
+                    break;
+                case WALK:
+                    playerAnims[WALK].Draw(spriteBatch, Color.White, animFlip);
+                    break;
+                case JUMP:
+                    playerAnims[JUMP].Draw(spriteBatch, Color.White, animFlip);
+                    break;
+                case CROUCH:
+                    playerAnims[CROUCH].Draw(spriteBatch, Color.White, animFlip);
+                    break;
+                case DEAD:
+                    break;
+            }
+
+
+            if (showCollisionRecs)
+            {
+                playerVisibleRecs[HEAD].Draw(spriteBatch, Color.Yellow * 0.5f, true);
+                playerVisibleRecs[LEFT].Draw(spriteBatch, Color.Red * 0.5f, true);
+                playerVisibleRecs[RIGHT].Draw(spriteBatch, Color.Blue * 0.5f, true);
+                playerVisibleRecs[FEET].Draw(spriteBatch, Color.Green * 0.5f, true);
+            }
+
+            spriteBatch.End();
+        }
+
+        
     }
 }

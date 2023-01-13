@@ -29,7 +29,7 @@ namespace PASS3
         private const int RIGHT = 2;
 
         // store the force of gravity
-        private const float GRAV_ACCEL = 8f / 60;
+        private const float GRAV_ACCEL = 3f;
 
         // local content manger and Graphics Device
         ContentManager content;
@@ -38,8 +38,8 @@ namespace PASS3
         // runner current state
         private EnemeyState state;
 
-        // runner direction
-        FaceDirection dir;
+        // runner damage
+        private float damage = 10;
 
         // runner animation arrays
         private Texture2D[] runnerImgs = new Texture2D[3];
@@ -64,10 +64,15 @@ namespace PASS3
         private Vector2 spd;
 
         // hitbox debug swtich
-        private bool showCollisionvisibleRecs = false;
+        private bool showCollisionvisibleRecs = true;
 
         // store if the runner is on the ground
         private bool isGround;
+
+        public float GetDamage
+        {
+            get { return damage; }
+        }
 
         public Runner(ContentManager content, GraphicsDevice graphicsDevice, EnemeyState state, Vector2 spawn, 
                       FaceDirection dir, float maxHealth, Vector2 spd): 
@@ -76,14 +81,12 @@ namespace PASS3
             this.content = content;
 
             this.graphicsDevice = graphicsDevice;
-
+            
             this.state = state;
              
             spawnPoint = spawn;
 
-            this.dir = dir;
-
-            this.spd = spd;
+            enemySpd = spd;
         }
 
         public void LoadRunner()
@@ -93,35 +96,48 @@ namespace PASS3
             runnerImgs[DEAD] = content.Load<Texture2D>("Animations/Enemies/Runner/Death");
             runnerImgs[HURT] = content.Load<Texture2D>("Animations/Enemies/Runner/Hurt");
 
-            runnerAnim[WALK] = new Animation(runnerImgs[WALK], 4, 1, 4, 1, Animation.NO_IDLE, Animation.ANIMATE_FOREVER, 5, pos, 3, true);
-            runnerAnim[DEAD] = new Animation(runnerImgs[DEAD], 4, 1, 4, 1, Animation.NO_IDLE, Animation.ANIMATE_FOREVER, 5, pos, 3, true);
-            runnerAnim[HURT] = new Animation(runnerImgs[HURT], 2, 1, 2, 1, Animation.NO_IDLE, Animation.ANIMATE_FOREVER, 5, pos, 3, true);
+            runnerAnim[WALK] = new Animation(runnerImgs[WALK], 4, 1, 4, 1, Animation.NO_IDLE, Animation.ANIMATE_FOREVER, 5, pos, 1, true);
+            runnerAnim[DEAD] = new Animation(runnerImgs[DEAD], 4, 1, 4, 1, Animation.NO_IDLE, Animation.ANIMATE_FOREVER, 5, pos, 1, true);
+            runnerAnim[HURT] = new Animation(runnerImgs[HURT], 2, 1, 2, 1, Animation.NO_IDLE, Animation.ANIMATE_FOREVER, 5, pos, 1, true);
 
             // load the runner's spawn point
             pos = spawnPoint;
 
             // set rec size to animtion dest rec size
             rec = runnerAnim[WALK].destRec;
+
+            EnemyRec = rec;
         }
 
         public void LoadvisibleRecs()
         {
             // Loc (x, y): top right of general rectangle
-            // Size (width, height): 50% of width, 75% of height
-            recs[LEFT] = new Rectangle(rec.X, rec.Y, (int)(rec.Width * 0.5f), (int)(rec.Height * 0.75f));
+            // Size (width, height): 50% of width, 90% of height
+            recs[LEFT] = new Rectangle(rec.X, rec.Y, (int)(rec.Width * 0.5f), (int)(rec.Height * 0.9f));
 
             // Loc (x, y): RIGHT of LEFT rectangle
             // Size (width, height): same as LEFT rectangle
-            recs[RIGHT] = new Rectangle(recs[LEFT].X, rec.Y, recs[LEFT].Width, recs[LEFT].Height);
+            recs[RIGHT] = new Rectangle(recs[LEFT].X + recs[LEFT].Width, rec.Y, recs[LEFT].Width, recs[LEFT].Height);
 
             // Loc (x, y): under LEFT rectangle, and in middle of general rec
-            // Size (width, height): 25% of width, rest of space (height)
-            recs[FEET] = new Rectangle(rec.X + rec.Width / 2 - (int)(rec.Width * 0.25f / 2), recs[LEFT].Y,
-                                (int)(rec.Width * 0.25f), rec.Height - recs[LEFT].Height);
+            // Size (width, height): 75% of width, rest of space (height)
+            recs[FEET] = new Rectangle(rec.X + rec.Width / 2 - (int)(rec.Width * 0.75f / 2), recs[LEFT].Y + recs[LEFT].Height,
+                                (int)(rec.Width * 0.75f), rec.Height - recs[LEFT].Height);
         }
 
-        public void Update()
+        public void Update(GameTime gameTime, Tile[,] tiles)
         {
+
+            pos.X += enemySpd.X;
+            pos.Y += GRAV_ACCEL;
+
+            rec.X = (int)pos.X;
+            rec.Y = (int)pos.Y;
+
+            UpdateTileCollision(tiles);
+
+            UpdateAnimRec(gameTime);
+
             if (showCollisionvisibleRecs)
             {
                 visiableRecs[WALK] = new GameRectangle(graphicsDevice, recs[WALK]);
@@ -155,14 +171,32 @@ namespace PASS3
                             LoadvisibleRecs();
 
                             // stage 2: check collision with sub hitboxes
-                            if (recs[LEFT].Intersects(tileRec) || recs[RIGHT].Intersects(tileRec))
+                            if (recs[LEFT].Intersects(tileRec))
                             {
                                 // runner turns around
                                 TurnArround();
 
+                                // move the enemy to the edge of the tile
+                                rec.X = tileRec.X + tileRec.Width;
+                                pos.X = rec.X;
+
                                 // change state
                                 state = WALK;
                             }
+
+                            if (recs[RIGHT].Intersects(tileRec))
+                            {
+                                // runner turns around
+                                TurnArround();
+
+                                // move the enemy to the edge of the tile
+                                rec.X = tileRec.X - rec.Width;
+                                pos.X = rec.X;
+
+                                // change state
+                                state = WALK;
+                            }
+
                             if (recs[FEET].Intersects(tileRec))
                             {
                                 // change isGround to true
@@ -170,6 +204,10 @@ namespace PASS3
 
                                 // change state
                                 state = WALK;
+
+                                rec.Y = tileRec.Y - rec.Height;
+                                pos.Y = rec.Y;
+                                enemySpd.Y = 0f;
                             }
                         }
                     }
@@ -177,13 +215,27 @@ namespace PASS3
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        // update the runner animation
+        public void UpdateAnimRec(GameTime gameTime)
         {
-            spriteBatch.Begin();
+            // update animtion
+            runnerAnim[(int)state].Update(gameTime);
+
+            // update the player's animation draw location
+            runnerAnim[(int)state].destRec.X = (int)pos.X;
+            runnerAnim[(int)state].destRec.Y = (int)pos.Y;
+
+            runnerAnim[(int)state].destRec.Width = rec.Width;
+            runnerAnim[(int)state].destRec.Height = rec.Height;
+        }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            //spriteBatch.Begin();
 
             // temporary flip variable
             SpriteEffects animFlip;
-            if (dir == FaceDirection.Left)
+            if (dir == FaceDirection.Right)
             {
                 animFlip = SpriteEffects.FlipHorizontally;
             }
@@ -212,7 +264,7 @@ namespace PASS3
                 visiableRecs[FEET].Draw(spriteBatch, Color.Green * 0.5f, true);
             }
 
-            spriteBatch.End();
+            //spriteBatch.End();
         }
 
     }

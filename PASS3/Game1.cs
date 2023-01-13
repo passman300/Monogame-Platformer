@@ -25,8 +25,10 @@ namespace PASS3
 
         Texture2D[] playerImgs;
 
+        // level files
+        int currLvl;
         Level lvl;
-        Stream[] lvlFiles = new Stream[5];
+        Level[] lvls = new Level[5];
 
         int screenWidth;
         int screenHeight;
@@ -76,11 +78,13 @@ namespace PASS3
 
             player.LoadPlayer();
 
-            lvlFiles[0] = TitleContainer.OpenStream("Content/Levels/1.txt");
+            currLvl = 0;
 
-            lvl = new Level(Content, 1, new Vector2(10, 70), player);
+            lvls[currLvl] = new Level(Content, GraphicsDevice,  0, new Vector2(10, 70), player);
+            lvls[currLvl].LoadContent();
 
-            lvl.LoadTiles(lvlFiles[0]);
+            //lvl = new Level(Content, 1, new Vector2(10, 70), player);
+            //lvl.LoadContent();
         }
 
         /// <summary>
@@ -103,8 +107,7 @@ namespace PASS3
                 Exit();
 
             // TODO: Add your update logic here
-
-            lvl.UpdateLevel(gameTime);
+            lvls[currLvl].UpdateLevel(gameTime);
 
             base.Update(gameTime);
         }
@@ -119,7 +122,7 @@ namespace PASS3
 
             // TODO: Add your drawing code here
 
-            lvl.Draw(spriteBatch);
+            lvls[currLvl].Draw(spriteBatch);
 
             player.Draw(spriteBatch);
 
