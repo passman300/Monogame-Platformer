@@ -41,8 +41,8 @@ namespace PASS3
         private Rectangle rec;
 
         // store the tile size
-        private const int WIDTH = 20;
-        private const int HEIGHT = 20;
+        private const int WIDTH = 25;
+        private const int HEIGHT = 25;
 
         // allow other classes to read tile size
         // can't not do a property since it is need to create a Tile object first, to use get

@@ -42,6 +42,9 @@ namespace PASS3
         // minimum speed of player when on ground
         private const float TOLERANCE = FRICTION * 0.9f;
 
+        // player's default maxHealth
+        private const int DEFAULT_MAX_HEALTH = 100;
+
         // local content manger
         ContentManager content;
 
@@ -51,6 +54,9 @@ namespace PASS3
         // player's sprites 
         private Texture2D[] playerImgs = new Texture2D[5];
         private Animation[] playerAnims = new Animation[5];
+
+        private int playerWidth = 45;
+        private int playerHeight = 60;
 
         // player general hitbox, and sub hitboxes
         private Rectangle playerRec;
@@ -75,6 +81,7 @@ namespace PASS3
         // player speed variables
         private Vector2 playerSpd;
         private float maxSpdX;
+        private float maxFallSpx;
 
         // initial jump speed
         private float jumpSpd;
@@ -88,17 +95,25 @@ namespace PASS3
         private float healthFactor;
         private bool isHeal;
 
+        // if player is hit they will be immune for a 1 second
+        private bool isImmune = false;
+        private Timer immuneTime = new Timer(1000, false);
+
         // player's score
         private int score;
 
         // player's health bar
         private Texture2D healthBarImg;
-        private Vector2 healthBarSize;
-        private Vector2 healthBarLoc;
+        private Vector2 healthBarMaxSize;
+        private Rectangle healthBarRec;
+        private Texture2D healthBarBoarderImg;
+        private Rectangle healthBarBoarderRec;
 
         // store user input
         KeyboardState prevKb;
         KeyboardState kb;
+
+        GameRectangle temp;
 
         public int SetMaxHealth
         {
@@ -126,6 +141,7 @@ namespace PASS3
             // load speed variables
             playerSpd = Vector2.Zero;
             maxSpdX = 3f;
+            maxFallSpx = 4f;
             jumpSpd = -9.65f;
             verticalVec = 0;
 
@@ -137,61 +153,75 @@ namespace PASS3
         //load the given content of the player model
         public void LoadPlayer()
         {
-            // load player animation sheets
-            playerImgs[IDLE] = content.Load<Texture2D>("Animations/Player/Idle");
-            playerImgs[WALK] = content.Load<Texture2D>("Animations/Player/Walk");
-            playerImgs[JUMP] = content.Load<Texture2D>("Animations/Player/Jump");
-            playerImgs[CROUCH] = content.Load<Texture2D>("Animations/Player/Idle");
-
-            // load player animations
-            playerAnims[IDLE] = new Animation(playerImgs[IDLE], 2, 3, 5, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
-            playerAnims[WALK] = new Animation(playerImgs[WALK], 3, 2, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
-            playerAnims[JUMP] = new Animation(playerImgs[JUMP], 2, 2, 3, 0, 0, Animation.ANIMATE_ONCE, 4, playerPos, 2, true);
-            playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 4, 1, 4, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
-
             // load player's postion
             playerPos = spawnPoint;
+
+            // load player animation sheets
+            //playerImgs[IDLE] = content.Load<Texture2D>("Animations/Player/Idle");
+            //playerImgs[WALK] = content.Load<Texture2D>("Animations/Player/Walk");
+            //playerImgs[JUMP] = content.Load<Texture2D>("Animations/Player/Jump");
+            //playerImgs[CROUCH] = content.Load<Texture2D>("Animations/Player/Idle");
+
+            playerImgs[IDLE] = content.Load<Texture2D>("Animations/Player/Temp/IdleV2");
+            playerImgs[WALK] = content.Load<Texture2D>("Animations/Player/Temp/WalkV2");
+            playerImgs[JUMP] = content.Load<Texture2D>("Animations/Player/Temp/Jump");
+            playerImgs[CROUCH] = content.Load<Texture2D>("Animations/Player/Temp/Crouch");
+
+
+            // load player animations
+            //playerAnims[IDLE] = new Animation(playerImgs[IDLE], 2, 3, 5, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
+            //playerAnims[WALK] = new Animation(playerImgs[WALK], 3, 2, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
+            //playerAnims[JUMP] = new Animation(playerImgs[JUMP], 2, 2, 3, 0, 0, Animation.ANIMATE_ONCE, 4, playerPos, 2, true);
+            //playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 4, 1, 4, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
+            playerAnims[IDLE] = new Animation(playerImgs[IDLE], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 3, true);
+            playerAnims[WALK] = new Animation(playerImgs[WALK], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 3, true);
+            playerAnims[JUMP] = new Animation(playerImgs[JUMP], 2, 1, 2, 0, 0, Animation.ANIMATE_ONCE, 4, playerPos, 3, true);
+            playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 3, 2, 6, 0, 1, Animation.ANIMATE_FOREVER, 5, playerPos, 3, true);
+
+            
+
+            maxHealth = DEFAULT_MAX_HEALTH;
+            currHealth = maxHealth;
 
             // load player's sub-hitboxes
             LoadPlayerRecs();
 
-            // load player's health bar
-            healthBarImg = content.Load<Texture2D>("Images/Player/HealthBar");
+            // load player's hud
+            LoadPlayerHud();
+
+
         }
 
         // load the player's overall and 2 stage collision of rectangles
         private void LoadPlayerRecs()
         {
-            // store the player's width and height temporarily
-            int playerWidth;
-            int playerHeight;
+            // center player rec of the of the animation dest rec
+            playerRec = new Rectangle(playerAnims[playerState].destRec.Center.X - playerWidth / 2,
+                                      playerAnims[playerState].destRec.Center.Y - playerHeight / 2,
+                                      playerWidth, playerHeight);
 
-            playerHeight = playerAnims[playerState].destRec.Height;
-            playerWidth = playerAnims[playerState].destRec.Width;
-            playerRec = new Rectangle((int)playerPos.X, (int)playerPos.Y, playerWidth, playerHeight);
-
-            // Loc (x, y): horizontally centered and at the top of the player
+            // Pos (x, y): horizontally centered and at the top of the player
             // Size (width, height): 60% of width, 86% of height
             playerRecs[HEAD] = new Rectangle(playerRec.X + (int)(playerRec.Width * 0.5f) - (int)(playerRec.Width * 0.43f),
                                             playerRec.Y,
                                             (int)(playerRec.Width * 0.86f),
                                             (int)(playerRec.Height * 0.10f));
 
-            // Loc (x, y): LEFT of players horizontal axis, and under HEAD
+            // Pos (x, y): LEFT of players horizontal axis, and under HEAD
             // Size (width, height): 50% of width, 75% of height
             playerRecs[LEFT] = new Rectangle(playerRec.X,
                                             playerRecs[HEAD].Y + playerRecs[HEAD].Height,
                                             (int)(playerRec.Width * 0.5f),
                                             (int)(playerRec.Height * 0.75f));
 
-            // Loc (x, y): RIGHT of LEFT rectangle, and under HEAD
+            // Pos (x, y): RIGHT of LEFT rectangle, and under HEAD
             // Size (width, height): 45% of width, 25% of height
             playerRecs[RIGHT] = new Rectangle(playerRecs[LEFT].X + playerRecs[LEFT].Width,
                                              playerRecs[HEAD].Y + playerRecs[HEAD].Height,
                                              (int)(playerRec.Width * 0.5f),
                                              (int)(playerRec.Height * 0.75f));
 
-            // Loc (x, y): horizontally centered and under LEFT rec
+            // Pos (x, y): horizontally centered and under LEFT rec
             // Size (width, height): 70% of width, and what space is left of the player rec
             playerRecs[FEET] = new Rectangle(playerRec.X + (int)(playerRec.Width * 0.5f) - (int)(playerRec.Width * 0.3f),
                                             playerRecs[LEFT].Y + playerRecs[LEFT].Height,
@@ -202,6 +232,8 @@ namespace PASS3
             //Now setup the visible recs when necessary
             if (showCollisionRecs)
             {
+                temp = new GameRectangle(graphicsDevice, playerRec);
+
                 playerVisibleRecs[HEAD] = new GameRectangle(graphicsDevice, playerRecs[HEAD]);
                 playerVisibleRecs[LEFT] = new GameRectangle(graphicsDevice, playerRecs[LEFT]);
                 playerVisibleRecs[RIGHT] = new GameRectangle(graphicsDevice, playerRecs[RIGHT]);
@@ -209,22 +241,45 @@ namespace PASS3
             }
         }
 
+        private void LoadPlayerHud()
+        {
+            // load player's health bar
+            healthBarImg = content.Load<Texture2D>("Images/Player/HealthBar");
+
+            healthBarMaxSize = new Vector2(4 * maxHealth, 20);
+            healthBarRec = new Rectangle(30, 30, (int)healthBarMaxSize.X, (int)healthBarMaxSize.Y);
+
+            // load player's health bar boarder
+            healthBarBoarderImg = content.Load<Texture2D>("Images/Player/HealthBarBoarder");
+            healthBarBoarderRec = new Rectangle(30, 30, healthBarRec.Width, healthBarRec.Height);
+        }
+
+        // update player's animation rectangles relative to the player true location
         private void UpdatePlayerAnimRec(GameTime gameTime)
         {
             // update the player's animation
             playerAnims[playerState].Update(gameTime);
 
             // update the player's animation draw location
-            playerAnims[playerState].destRec.X = (int)playerPos.X;
-            playerAnims[playerState].destRec.Y = (int)playerPos.Y;
+            playerAnims[playerState].destRec.X = (int)playerPos.X - (playerAnims[playerState].destRec.Width - playerWidth);
+            playerAnims[playerState].destRec.Y = (int)playerPos.Y - (playerAnims[playerState].destRec.Height - playerHeight);
 
-            playerAnims[playerState].destRec.Width = playerRec.Width;
-            playerAnims[playerState].destRec.Height = playerRec.Height;
+            //playerAnims[playerState].destRec.Width = playerRec.Width;
+            //playerAnims[playerState].destRec.Height = playerRec.Height;
         }
 
-        // update player
-        public void Update(GameTime gametime, Tile[,] tiles)
+        // update all player properties. Like a manager
+        public void Update(GameTime gameTime, Tile[,] tiles, Enemy[,] enemies)
         {
+            UpdatePlayer(gameTime, tiles, enemies);
+            UpdateHealthBar();
+        }
+
+        // update player's movement, and states
+        private void UpdatePlayer(GameTime gametime, Tile[,] tiles, Enemy[,] enemies)
+        {
+            // player movement region
+            #region
             prevKb = kb;
             kb = Keyboard.GetState();
 
@@ -239,7 +294,6 @@ namespace PASS3
                 isIdle = true;
                 playerState = IDLE;
             }
-
 
             // change user with respect to player input
             if (kb.IsKeyDown(Keys.A))
@@ -326,6 +380,8 @@ namespace PASS3
 
             //add gravity to the player's y speed
             playerSpd.Y += GRAV_ACCEL;
+            playerSpd.Y = MathHelper.Clamp(playerSpd.Y, jumpSpd, maxFallSpx);
+
 
             // add player's speed to their position
             playerPos.X += playerSpd.X;
@@ -334,8 +390,30 @@ namespace PASS3
             // update the player's rectangle to the new player position
             playerRec.X = (int)playerPos.X;
             playerRec.Y = (int)playerPos.Y;
+            #endregion 
 
-            // check collisions again
+            // check if the player is isImmune
+            if (isImmune)
+            {
+                // if the player is immune then don't check enemy collision
+                // instead update immune timer
+                immuneTime.Update(gametime.ElapsedGameTime.TotalMilliseconds);
+
+                // check if timer is over
+                if (immuneTime.IsFinished())
+                {
+                    // set immune flag to false and reset timer
+                    isImmune = false;
+                    immuneTime.ResetTimer(false);
+                }
+            }
+            // if not immune check enemy collsion
+            else
+            {
+                // check enemy collisons
+                UpdateEnemyCollision(enemies);
+            }
+            // check tiles collisions
             UpdateTileCollision(tiles);
 
             // update the player's animation
@@ -346,7 +424,7 @@ namespace PASS3
 
         private void UpdateHealthBar()
         {
-
+            healthBarRec.Width = (int)(healthBarMaxSize.X * (currHealth / maxHealth));
         }
 
         // check if player has collision with tiles
@@ -443,6 +521,9 @@ namespace PASS3
                             if (enemies[row, col] is Runner)
                             {
                                 currHealth -= ((Runner)(enemies[row, col])).GetDamage;
+
+                                isImmune = true;
+                                immuneTime.Activate();
                             }
                         }
                     }
@@ -451,10 +532,21 @@ namespace PASS3
         }
 
 
+        // draw all of player's properties
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();
 
+            DrawPlayer(spriteBatch);
+            DrawHud(spriteBatch);
+            
+            spriteBatch.End();
+
+        }
+
+        // draw only the player
+        private void DrawPlayer(SpriteBatch spriteBatch)
+        {
             // temporary flip variable
             SpriteEffects animFlip;
             if (playerDir == FaceDirection.Left)
@@ -487,15 +579,20 @@ namespace PASS3
 
             if (showCollisionRecs)
             {
+                temp.Draw(spriteBatch, Color.Beige * 0.7f, true);
+
                 playerVisibleRecs[HEAD].Draw(spriteBatch, Color.Yellow * 0.5f, true);
                 playerVisibleRecs[LEFT].Draw(spriteBatch, Color.Red * 0.5f, true);
                 playerVisibleRecs[RIGHT].Draw(spriteBatch, Color.Blue * 0.5f, true);
                 playerVisibleRecs[FEET].Draw(spriteBatch, Color.Green * 0.5f, true);
             }
-
-            spriteBatch.End();
         }
 
-        
+        // draw only the hud
+        private void DrawHud(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(healthBarImg, healthBarRec, Color.White);
+            spriteBatch.Draw(healthBarBoarderImg, healthBarBoarderRec, Color.White);
+        }
     }
 }

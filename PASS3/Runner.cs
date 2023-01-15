@@ -39,7 +39,7 @@ namespace PASS3
         private EnemeyState state;
 
         // runner damage
-        private float damage = 10;
+        private float atkDamage = 10;
 
         // runner animation arrays
         private Texture2D[] runnerImgs = new Texture2D[3];
@@ -71,7 +71,7 @@ namespace PASS3
 
         public float GetDamage
         {
-            get { return damage; }
+            get { return atkDamage; }
         }
 
         public Runner(ContentManager content, GraphicsDevice graphicsDevice, EnemeyState state, Vector2 spawn, 
@@ -105,6 +105,8 @@ namespace PASS3
 
             // set rec size to animtion dest rec size
             rec = runnerAnim[WALK].destRec;
+            rec.X = (int)pos.X;
+            rec.Y = (int)pos.Y;
 
             EnemyRec = rec;
         }
@@ -133,6 +135,8 @@ namespace PASS3
 
             rec.X = (int)pos.X;
             rec.Y = (int)pos.Y;
+
+            EnemyRec = rec;
 
             UpdateTileCollision(tiles);
 
@@ -209,6 +213,8 @@ namespace PASS3
                                 pos.Y = rec.Y;
                                 enemySpd.Y = 0f;
                             }
+
+                            EnemyRec = rec;
                         }
                     }
                 }

@@ -142,15 +142,15 @@ namespace PASS3
             // reset enemy state
             state = defaultState;
 
-            // reset all animtions
-            foreach (KeyValuePair<EnemeyState, Animation> ele in aniDict)
-            {
-                Animation ani = ele.Value;
+            //// reset all animtions
+            //foreach (KeyValuePair<EnemeyState, Animation> ele in aniDict)
+            //{
+            //    Animation ani = ele.Value;
 
-                // reset the animation frame, and isAnimating
-                ani.isAnimating = true;
-                ani.curFrame = 0;
-            }
+            //    // reset the animation frame, and isAnimating
+            //    ani.isAnimating = true;
+            //    ani.curFrame = 0;
+            //}
 
             // reset the enemy location
             pos = startPos;

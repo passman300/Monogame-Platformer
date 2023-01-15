@@ -237,7 +237,7 @@ namespace PASS3
         // updates the level and player
         public void UpdateLevel(GameTime gameTime)
         {
-            player.Update(gameTime, tiles);
+            player.Update(gameTime, tiles, enemies);
 
             UpdateEnemies(gameTime);
         }

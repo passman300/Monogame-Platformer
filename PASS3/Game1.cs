@@ -61,7 +61,7 @@ namespace PASS3
             screenHeight = graphics.GraphicsDevice.Viewport.Height;
 
             player = new Player(Content, GraphicsDevice);
-            player.SetSpawnPoint = new Vector2(10, 70);
+            player.SetSpawnPoint = new Vector2(80, 120);
             base.Initialize();
         }
 
