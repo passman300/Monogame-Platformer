@@ -21,8 +21,15 @@ namespace PASS3
         private const byte IDLE = 0;
         private const byte WALK = 1;
         private const byte JUMP = 2;
-        private const byte CROUCH = 3;
-        private const byte DEAD = 4;
+        private const byte FALL = 3;
+        private const byte CROUCH = 4;
+        private const byte ATK1 = 5;
+        private const byte ATK2 = 6;
+        private const byte ATK3 = 7;
+        private const byte MAGIC = 8;
+        private const byte HURT = 9;
+        private const byte DEAD = 10;
+
 
         // player body parts
         private const int FEET = 0;
@@ -31,19 +38,22 @@ namespace PASS3
         private const int RIGHT = 3;
 
         // store the force of gravity
-        private const float GRAV_ACCEL = 0.4f;
+        private const float GRAV_ACCEL = 0.7f;
 
         // player's horizontal acceleration
         private const float ACCEL = 1.1f;
 
         // store the force of ground friction
-        private const float FRICTION = ACCEL * 0.8f;
+        private const float FRICTION = ACCEL * 0.2f;
 
         // minimum speed of player when on ground
         private const float TOLERANCE = FRICTION * 0.9f;
 
         // player's default maxHealth
         private const int DEFAULT_MAX_HEALTH = 100;
+
+        // animtion scale
+        private const int SCALE = 3;
 
         // local content manger
         ContentManager content;
@@ -52,8 +62,8 @@ namespace PASS3
         GraphicsDevice graphicsDevice;
 
         // player's sprites 
-        private Texture2D[] playerImgs = new Texture2D[5];
-        private Animation[] playerAnims = new Animation[5];
+        private Texture2D[] playerImgs = new Texture2D[10];
+        private Animation[] playerAnims = new Animation[10];
 
         private int playerWidth = 45;
         private int playerHeight = 60;
@@ -77,6 +87,7 @@ namespace PASS3
         // player's location
         private Vector2 spawnPoint;
         private Vector2 playerPos;
+        private Vector2 animPos = Vector2.Zero;
 
         // player speed variables
         private Vector2 playerSpd;
@@ -99,6 +110,11 @@ namespace PASS3
         private bool isImmune = false;
         private Timer immuneTime = new Timer(1000, false);
 
+        // attack combo the player can do
+        // the timer if a window which the user, is able to continue the combo
+        private int atkCombo;
+        private Timer atkComboTimer = new Timer(100, false);
+
         // player's score
         private int score;
 
@@ -112,8 +128,11 @@ namespace PASS3
         // store user input
         KeyboardState prevKb;
         KeyboardState kb;
+        MouseState prevMouse;
+        MouseState mouse;
 
         GameRectangle temp;
+        GameRectangle temp2;
 
         public int SetMaxHealth
         {
@@ -141,8 +160,8 @@ namespace PASS3
             // load speed variables
             playerSpd = Vector2.Zero;
             maxSpdX = 3f;
-            maxFallSpx = 4f;
-            jumpSpd = -9.65f;
+            maxFallSpx = 5.2f;
+            jumpSpd = -13.2f;
             verticalVec = 0;
 
             // load health variables
@@ -153,8 +172,7 @@ namespace PASS3
         //load the given content of the player model
         public void LoadPlayer()
         {
-            // load player's postion
-            playerPos = spawnPoint;
+            
 
             // load player animation sheets
             //playerImgs[IDLE] = content.Load<Texture2D>("Animations/Player/Idle");
@@ -164,21 +182,27 @@ namespace PASS3
 
             playerImgs[IDLE] = content.Load<Texture2D>("Animations/Player/Temp/IdleV2");
             playerImgs[WALK] = content.Load<Texture2D>("Animations/Player/Temp/WalkV2");
-            playerImgs[JUMP] = content.Load<Texture2D>("Animations/Player/Temp/Jump");
-            playerImgs[CROUCH] = content.Load<Texture2D>("Animations/Player/Temp/Crouch");
+            playerImgs[JUMP] = content.Load<Texture2D>("Animations/Player/Temp/JumpV2");
+            playerImgs[FALL] = content.Load<Texture2D>("Animations/Player/Temp/FallV2");
+            playerImgs[CROUCH] = content.Load<Texture2D>("Animations/Player/Temp/CrouchV2");
+            playerImgs[ATK1] = content.Load<Texture2D>("Animations/Player/Temp/Attack1V2");
+            playerImgs[ATK2] = content.Load<Texture2D>("Animations/Player/Temp/Attack2V2");
+            playerImgs[ATK3] = content.Load<Texture2D>("Animations/Player/Temp/Attack3V2");
 
+           
 
-            // load player animations
-            //playerAnims[IDLE] = new Animation(playerImgs[IDLE], 2, 3, 5, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
-            //playerAnims[WALK] = new Animation(playerImgs[WALK], 3, 2, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
-            //playerAnims[JUMP] = new Animation(playerImgs[JUMP], 2, 2, 3, 0, 0, Animation.ANIMATE_ONCE, 4, playerPos, 2, true);
-            //playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 4, 1, 4, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 2, true);
-            playerAnims[IDLE] = new Animation(playerImgs[IDLE], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 3, true);
-            playerAnims[WALK] = new Animation(playerImgs[WALK], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, playerPos, 3, true);
-            playerAnims[JUMP] = new Animation(playerImgs[JUMP], 2, 1, 2, 0, 0, Animation.ANIMATE_ONCE, 4, playerPos, 3, true);
-            playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 3, 2, 6, 0, 1, Animation.ANIMATE_FOREVER, 5, playerPos, 3, true);
+            playerAnims[IDLE] = new Animation(playerImgs[IDLE], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, animPos, SCALE, true);
+            playerAnims[WALK] = new Animation(playerImgs[WALK], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, animPos, SCALE, true);
+            playerAnims[JUMP] = new Animation(playerImgs[JUMP], 1, 2, 2, 0, 0, Animation.ANIMATE_FOREVER, 4, animPos, SCALE, true);
+            playerAnims[FALL] = new Animation(playerImgs[FALL], 1, 2, 2, 0, 0, Animation.ANIMATE_FOREVER, 4, animPos, SCALE, true);
+            playerAnims[CROUCH] = new Animation(playerImgs[CROUCH], 2, 3, 6, 0, 0, Animation.ANIMATE_FOREVER, 5, animPos, SCALE, true);
+            playerAnims[ATK1] = new Animation(playerImgs[ATK1], 2, 3, 5, 0, 0, Animation.ANIMATE_FOREVER, 5, animPos, SCALE, true);
+            playerAnims[ATK2] = new Animation(playerImgs[ATK2], 2, 3, 5, 0, 0, Animation.ANIMATE_FOREVER, 5, animPos, SCALE, true);
+            playerAnims[ATK3] = new Animation(playerImgs[ATK3], 2, 3, 5, 0, 0, Animation.ANIMATE_FOREVER, 5, animPos, SCALE, true);
 
-            
+            // load player's postion
+            playerPos = spawnPoint;
+            AnimToPlayerPos();
 
             maxHealth = DEFAULT_MAX_HEALTH;
             currHealth = maxHealth;
@@ -196,8 +220,8 @@ namespace PASS3
         private void LoadPlayerRecs()
         {
             // center player rec of the of the animation dest rec
-            playerRec = new Rectangle(playerAnims[playerState].destRec.Center.X - playerWidth / 2,
-                                      playerAnims[playerState].destRec.Center.Y - playerHeight / 2,
+            playerRec = new Rectangle((int)playerPos.X,
+                                      (int)playerPos.Y,
                                       playerWidth, playerHeight);
 
             // Pos (x, y): horizontally centered and at the top of the player
@@ -212,14 +236,14 @@ namespace PASS3
             playerRecs[LEFT] = new Rectangle(playerRec.X,
                                             playerRecs[HEAD].Y + playerRecs[HEAD].Height,
                                             (int)(playerRec.Width * 0.5f),
-                                            (int)(playerRec.Height * 0.75f));
+                                            (int)(playerRec.Height * 0.5f));
 
             // Pos (x, y): RIGHT of LEFT rectangle, and under HEAD
             // Size (width, height): 45% of width, 25% of height
             playerRecs[RIGHT] = new Rectangle(playerRecs[LEFT].X + playerRecs[LEFT].Width,
                                              playerRecs[HEAD].Y + playerRecs[HEAD].Height,
                                              (int)(playerRec.Width * 0.5f),
-                                             (int)(playerRec.Height * 0.75f));
+                                             (int)(playerRec.Height * 0.5f));
 
             // Pos (x, y): horizontally centered and under LEFT rec
             // Size (width, height): 70% of width, and what space is left of the player rec
@@ -233,6 +257,7 @@ namespace PASS3
             if (showCollisionRecs)
             {
                 temp = new GameRectangle(graphicsDevice, playerRec);
+                temp2 = new GameRectangle(graphicsDevice, playerAnims[playerState].destRec);
 
                 playerVisibleRecs[HEAD] = new GameRectangle(graphicsDevice, playerRecs[HEAD]);
                 playerVisibleRecs[LEFT] = new GameRectangle(graphicsDevice, playerRecs[LEFT]);
@@ -257,12 +282,14 @@ namespace PASS3
         // update player's animation rectangles relative to the player true location
         private void UpdatePlayerAnimRec(GameTime gameTime)
         {
+            AnimToPlayerPos();
+            
             // update the player's animation
             playerAnims[playerState].Update(gameTime);
 
             // update the player's animation draw location
-            playerAnims[playerState].destRec.X = (int)playerPos.X - (playerAnims[playerState].destRec.Width - playerWidth);
-            playerAnims[playerState].destRec.Y = (int)playerPos.Y - (playerAnims[playerState].destRec.Height - playerHeight);
+            playerAnims[playerState].destRec.X = (int)animPos.X + 2;
+            playerAnims[playerState].destRec.Y = (int)animPos.Y + 2;
 
             //playerAnims[playerState].destRec.Width = playerRec.Width;
             //playerAnims[playerState].destRec.Height = playerRec.Height;
@@ -278,10 +305,12 @@ namespace PASS3
         // update player's movement, and states
         private void UpdatePlayer(GameTime gametime, Tile[,] tiles, Enemy[,] enemies)
         {
-            // player movement region
-            #region
+            
             prevKb = kb;
             kb = Keyboard.GetState();
+
+            prevMouse = mouse;
+            mouse = Mouse.GetState();
 
             //Toggle the visibility of the player's collision rectangles for testing
             if (kb.IsKeyDown(Keys.D1) && !prevKb.IsKeyDown(Keys.D1))
@@ -295,24 +324,24 @@ namespace PASS3
                 playerState = IDLE;
             }
 
+            // player movement region
+            #region
             // change user with respect to player input
             if (kb.IsKeyDown(Keys.A))
             {
                 // update the player states
-                playerState = WALK;
+                playerState = isGround ? WALK : JUMP;
                 playerDir = FaceDirection.Left;
                 isIdle = false;
 
                 // update player speed
                 playerSpd.X -= ACCEL;
                 playerSpd.X = MathHelper.Clamp(playerSpd.X, -maxSpdX, maxSpdX);
-
-
             }
             else if (kb.IsKeyDown(Keys.D))
             {
                 // update the player states
-                playerState = WALK;
+                playerState = isGround ? WALK : JUMP;
                 playerDir = FaceDirection.Right;
                 isIdle = false;
 
@@ -337,17 +366,24 @@ namespace PASS3
 
                 playerSpd.Y = jumpSpd;
             }
-            if (kb.IsKeyDown(Keys.S) && !isHeal)
+            if (kb.IsKeyDown(Keys.S))
             {
                 // update player state
                 playerState = CROUCH;
 
-                // update the player health
-                currHealth *= 1 + healthFactor;
+                if (!isHeal)
+                {
+                    // update the player health
+                    currHealth *= 1 + healthFactor;
 
-                // change player flags
-                isHeal = true;
-                isIdle = false;
+                    // change player flags
+                    isHeal = true;
+                    isIdle = false;
+                }
+            }
+            if (mouse.LeftButton == ButtonState.Pressed && prevMouse.LeftButton != ButtonState.Pressed)
+            {
+
             }
             // adjust players speed by ground effects
             if (isGround)
@@ -434,7 +470,8 @@ namespace PASS3
             int height = tiles.GetLength(0);
             int width = tiles.GetLength(1);
 
-            isGround = false;
+            bool tempGround = false;
+
             // Loop over every tile position
             for (int col = 0; col < width; col++)
             {
@@ -463,10 +500,12 @@ namespace PASS3
                                         playerPos.Y = playerRec.Y;
                                         playerSpd.Y = 0f;
                                         isGround = true;
+
+                                        LoadPlayerRecs();
                                     }
                                 }
                                 // only check head if vertical vector is going up and no ground
-                                else if (verticalVec == 1 && !isGround)
+                                else if (verticalVec == 1 && !tempGround)
                                 {
                                     if (playerRecs[HEAD].Intersects(tileRec))
                                     {
@@ -474,6 +513,8 @@ namespace PASS3
                                         playerPos.Y = playerRec.Y;
                                         playerSpd.Y = GRAV_ACCEL;
                                         collision = true;
+
+                                        LoadPlayerRecs();
                                     }
                                 }
 
@@ -484,13 +525,17 @@ namespace PASS3
                                     playerPos.X = playerRec.X;
                                     playerSpd.X = 0f;
                                     collision = true;
+
+                                    LoadPlayerRecs();
                                 }
-                                if (playerRecs[RIGHT].Intersects(tileRec))
+                                else if (playerRecs[RIGHT].Intersects(tileRec))
                                 {
                                     playerRec.X = tileRec.X - playerRec.Width;
                                     playerPos.X = playerRec.X;
                                     playerSpd.X = 0f;
                                     collision = true;
+
+                                    LoadPlayerRecs();
                                 }
                             }
                         }
@@ -580,6 +625,7 @@ namespace PASS3
             if (showCollisionRecs)
             {
                 temp.Draw(spriteBatch, Color.Beige * 0.7f, true);
+                temp2.Draw(spriteBatch, Color.CornflowerBlue * 0.7f, true);
 
                 playerVisibleRecs[HEAD].Draw(spriteBatch, Color.Yellow * 0.5f, true);
                 playerVisibleRecs[LEFT].Draw(spriteBatch, Color.Red * 0.5f, true);
@@ -593,6 +639,13 @@ namespace PASS3
         {
             spriteBatch.Draw(healthBarImg, healthBarRec, Color.White);
             spriteBatch.Draw(healthBarBoarderImg, healthBarBoarderRec, Color.White);
+        }
+
+
+        private void AnimToPlayerPos()
+        {
+            animPos.X = playerPos.X - ((playerAnims[playerState].destRec.Width) - (playerWidth)) / 2 + 2;
+            animPos.Y = playerPos.Y - ((playerAnims[playerState].destRec.Height)- (playerHeight)) / 2 + 2;
         }
     }
 }

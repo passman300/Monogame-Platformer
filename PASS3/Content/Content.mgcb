@@ -97,7 +97,7 @@
 /processorParam:TextureFormat=Color
 /build:Animations/Player/Jump.png
 
-#begin Animations/Player/Temp/Attack1.png
+#begin Animations/Player/Temp/Attack1V2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -107,9 +107,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Attack1.png
+/build:Animations/Player/Temp/Attack1V2.png
 
-#begin Animations/Player/Temp/Attack3.png
+#begin Animations/Player/Temp/Attack2V2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -119,9 +119,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Attack3.png
+/build:Animations/Player/Temp/Attack2V2.png
 
-#begin Animations/Player/Temp/Atttack2.png
+#begin Animations/Player/Temp/Attack3V2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -131,9 +131,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Atttack2.png
+/build:Animations/Player/Temp/Attack3V2.png
 
-#begin Animations/Player/Temp/Crouch.png
+#begin Animations/Player/Temp/CrouchV2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -143,9 +143,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Crouch.png
+/build:Animations/Player/Temp/CrouchV2.png
 
-#begin Animations/Player/Temp/Fall.png
+#begin Animations/Player/Temp/DeadV2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -155,9 +155,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Fall.png
+/build:Animations/Player/Temp/DeadV2.png
 
-#begin Animations/Player/Temp/Idle.png
+#begin Animations/Player/Temp/FallV2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -167,7 +167,19 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Idle.png
+/build:Animations/Player/Temp/FallV2.png
+
+#begin Animations/Player/Temp/HurtV2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Animations/Player/Temp/HurtV2.png
 
 #begin Animations/Player/Temp/IdleV2.png
 /importer:TextureImporter
@@ -181,7 +193,7 @@
 /processorParam:TextureFormat=Color
 /build:Animations/Player/Temp/IdleV2.png
 
-#begin Animations/Player/Temp/Jump.png
+#begin Animations/Player/Temp/JumpV2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -191,9 +203,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Jump.png
+/build:Animations/Player/Temp/JumpV2.png
 
-#begin Animations/Player/Temp/Magic.png
+#begin Animations/Player/Temp/MagicV2.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -203,19 +215,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Magic.png
-
-#begin Animations/Player/Temp/Walk.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Animations/Player/Temp/Walk.png
+/build:Animations/Player/Temp/MagicV2.png
 
 #begin Animations/Player/Temp/WalkV2.png
 /importer:TextureImporter
