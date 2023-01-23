@@ -24,11 +24,11 @@ namespace PASS3
         }
 
         // states of the enemy
-        public enum EnemeyState
+        public enum EnemyState
         {
-            Walk = 0,
-            Dead = 1,
-            Hurt = 2,
+            Dead = 0,
+            Hurt = 1,
+            Active = 2,
         }
 
         // store the local content manger
@@ -38,18 +38,15 @@ namespace PASS3
         GraphicsDevice graphicsDevice;
 
         // enemy state
-        private EnemeyState defaultState;
-        private EnemeyState state;
+        protected EnemyState defaultState;
+        protected EnemyState state;
 
         // enemy rec
         protected Rectangle rec;
 
         // enemy location
-        private Vector2 startPos;
-        private Vector2 pos;
-
-        // enemy spawn point
-        private Vector2 spawn;
+        protected Vector2 startPos;
+        protected Vector2 pos;
 
         // enemy spd
         protected Vector2 enemySpd;
@@ -59,12 +56,15 @@ namespace PASS3
         protected FaceDirection dir;
 
         // enemy health variables
-        private float maxHealth;
-        private float currHealth;
+        protected float maxHealth;
+        protected float currHealth;
 
+        // is dead flag
+        private bool isDead = false;
+        private bool scoreFlag = false;
 
         // set and get enemy state
-        public EnemeyState EnemyState
+        public EnemyState SetEnemyState
         {
             set { state = value; }
             get { return state; }
@@ -83,9 +83,22 @@ namespace PASS3
             get { return rec; }
         }
 
+        // returns if dead
+        public bool IsDead
+        {
+            set { isDead = value; }
+            get { return isDead; }
+        }
+
+        // returns if the score has been claimed
+        public bool IsReward
+        {
+            get { return !scoreFlag; }
+            set { scoreFlag = value; }
+        }
 
         // constructor for enemy
-        public Enemy(ContentManager content, GraphicsDevice graphicsDevice, EnemeyState state, Vector2 spawn, FaceDirection dir, float maxHealth, Vector2 spd)
+        public Enemy(ContentManager content, GraphicsDevice graphicsDevice, EnemyState state, Vector2 spawn, FaceDirection dir, float maxHealth, Vector2 spd)
         {
             // pass the local content manger
             this.content = content;
@@ -96,9 +109,6 @@ namespace PASS3
             // default state
             defaultState = state;
             this.state = state;
-
-            // store the enemys spawn point
-            this.spawn = spawn;
 
             // store the start location
             startPos = spawn;
@@ -142,16 +152,6 @@ namespace PASS3
             // reset enemy state
             state = defaultState;
 
-            //// reset all animtions
-            //foreach (KeyValuePair<EnemeyState, Animation> ele in aniDict)
-            //{
-            //    Animation ani = ele.Value;
-
-            //    // reset the animation frame, and isAnimating
-            //    ani.isAnimating = true;
-            //    ani.curFrame = 0;
-            //}
-
             // reset the enemy location
             pos = startPos;
 
@@ -162,16 +162,36 @@ namespace PASS3
             dir = startDir;
         }
 
-        //// update the enemy
-        //public void UpdatePos()
-        //{
-        //    pos += enemySpd;
-        //}
-
         public virtual void Draw(SpriteBatch spriteBatch)
         {
 
         }
 
+        public void UpdateHealth(float damage)
+        {
+            currHealth -= damage;
+
+            state = EnemyState.Hurt;
+
+            if (currHealth <= 0)
+            {
+                state = EnemyState.Dead;
+            }
+        }
+
+        // make dead enemy 
+        public void MakeDead()
+        {
+            enemySpd = new Vector2(0, 0);
+            pos = new Vector2(-9000, -9000);
+            rec.X = (int)pos.X;
+            rec.Y = (int)pos.Y;
+        }
+
+        // returns the reward of the enemy
+        public virtual int GetReward()
+        {
+            return 0;
+        }
     }
 }

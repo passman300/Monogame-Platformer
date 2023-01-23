@@ -49,6 +49,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -57,15 +60,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BloodEmitter.cs" />
+    <Compile Include="BloodEmitterV2.cs" />
+    <Compile Include="BloodParticle.cs" />
     <Compile Include="CenterRec.cs" />
+    <Compile Include="FireBall.cs" />
+    <Compile Include="EndDoor.cs" />
     <Compile Include="Enemy.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="Goblin.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runner.cs" />
-    <Compile Include="test.cs" />
+    <Compile Include="Thrower.cs" />
     <Compile Include="Tile.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -28,6 +28,9 @@ namespace PASS3
         // store the enemies of an level in a 2D array
         private Enemy[,] enemies;
 
+        // store all active fireball in the level
+        private Dictionary<(int x, int y), List<FireBall>> lvlFireBalls = new Dictionary<(int x, int y), List<FireBall>>();
+
         // store the current level
         public int levelNum;
 
@@ -36,6 +39,13 @@ namespace PASS3
 
         // store the player
         private Player player;
+
+        // flag if player reaches next level;
+        private bool isNextLvl = false;
+
+        // flag if the player is dead
+        private bool isPlayerDead = false;
+
 
         // property that gets level width and height in terms of tiles
         public int GetTileWidth
@@ -58,7 +68,7 @@ namespace PASS3
 
 
         // create a new level
-        public Level(ContentManager content, GraphicsDevice graphics, int levelNum, Vector2 spawnPoint, Player player)
+        public Level(ContentManager content, GraphicsDevice graphics, int levelNum, Player player)
         {
             // store the passed contentManger and graphicsDevice
             this.content = content;
@@ -67,19 +77,13 @@ namespace PASS3
             // store the passed through level number
             this.levelNum = levelNum;
 
-            // store the level's spawnPoint
-            this.spawnPoint = spawnPoint;
-
             // store the gloval player variable
             this.player = player;
-
-            // change players spawn point to level's
-            player.SetSpawnPoint = spawnPoint;
 
         }
 
         // load all tiles in a level
-        public void LoadTiles(Stream filePath)
+        private void LoadTiles(Stream filePath)
         {
             // create new file reader
             StreamReader reader = new StreamReader(filePath);
@@ -103,16 +107,16 @@ namespace PASS3
             }
 
             // Allocate the tile grid.
-            tiles = new Tile[lines.Count, width];
+            tiles = new Tile[width, lines.Count];
 
             // Loop over every tile position,
-            for (int y = 0; y < tiles.GetLength(0);  y++)
+            for (int x = 0; x < tiles.GetLength(0); x++)
             {
-                for (int x = 0; x < tiles.GetLength(1); x++)
+                for (int y = 0; y < tiles.GetLength(1);  y++)
                 { 
                     // to load each tile.
                     char tileType = lines[y][x];
-                    tiles[y, x] = LoadTileManger(tileType, x, y);
+                    tiles[x, y] = LoadTileManger(tileType, x, y);
                 }
             }
             reader.Close();
@@ -123,6 +127,13 @@ namespace PASS3
         {
             switch (tileType)
             {
+                // player spawn point
+                case '!':
+                    Vector2 spawn = new Vector2(x * Tile.Size.X, y * Tile.Size.Y);
+
+                    player.SetSpawnPoint = spawn;
+                    return LoadTile("Blank", TileCollision.Passable, new Vector2(x, y));
+
                 // floor/ground tile
                 case '#':
                     return LoadTile("Floor", TileCollision.Impassable, new Vector2(x, y));
@@ -130,12 +141,26 @@ namespace PASS3
                 case '.':
                     return LoadTile("Blank", TileCollision.Passable, new Vector2(x, y));
 
-                case 'A':
-                    return LoadTile("Floor", TileCollision.Impassable, new Vector2(x, y));
+                case '1':
+                    return LoadTile("Plat1", TileCollision.Platform, new Vector2(x, y));
+                case '2':
+                    return LoadTile("Plat2", TileCollision.Platform, new Vector2(x, y));
+                case '3':
+                    return LoadTile("Plat3", TileCollision.Platform, new Vector2(x, y));
+                case '4':
+                    return LoadTile("Plat4", TileCollision.Impassable, new Vector2(x, y));
+                case '5':
+                    return LoadTile("Plat5", TileCollision.Impassable, new Vector2(x, y));
+                case '6':
+                    return LoadTile("Plat6", TileCollision.Impassable, new Vector2(x, y));
+                case 'E':
+                    return LoadTile("ExitArrow", TileCollision.Exit, new Vector2(x, y));
 
+                case '^':
+                    return LoadTile("Spike", TileCollision.Spike, new Vector2(x, y));
                 // default is tileType (' ')
                 default:
-                    return null;
+                    return LoadTile("Blank", TileCollision.Passable, new Vector2(x, y));
             }
         }
 
@@ -179,20 +204,31 @@ namespace PASS3
             }
 
             // Allocate the tile grid.
-            enemies = new Enemy[lines.Count, width];
+            enemies = new Enemy[width, lines.Count];
 
             // Loop over every tile position,
-            for (int y = 0; y < enemies.GetLength(0); y++)
+            for (int x = 0; x < enemies.GetLength(0); x++)
             {
-                for (int x = 0; x < enemies.GetLength(1); x++)
+                for (int y = 0; y < enemies.GetLength(1); y++)
                 {
                     // to load each tile.
                     char enemyType = lines[y][x];
-                    enemies[y, x] = LoadEnemyManger(enemyType, x, y);
-                    
-                    if (enemies[y, x] != null)
+
+                    enemies[x, y] = LoadEnemyManger(enemyType, x, y);
+
+                    if (enemies[x, y] != null)
                     {
-                        ((Runner)(enemies[y, x])).LoadRunner();
+                        if ((enemies[x, y]) is Runner)
+                        {
+                            ((Runner)(enemies[x, y])).LoadRunner();
+                        }
+                        else if ((enemies[x, y]) is Goblin)
+                        {
+                            ((Goblin)enemies[x, y]).LoadGoblin();
+                        }
+
+                        // also load an blank tile where the enemy was spawned at
+                        tiles[x, y] = LoadTileManger('.', x, y);
                     }
                 }
             }
@@ -208,25 +244,41 @@ namespace PASS3
             switch (enemyType)
             {
                 case 'R':
-                    return LoadRunner(new Vector2(x * Tile.Size.X, y * Tile.Size.Y), Enemy.FaceDirection.Right);
+                    return CreateRunner(new Vector2(x * Tile.Size.X, y * Tile.Size.Y), Enemy.FaceDirection.Right);
                 case 'r':
-                    return LoadRunner(new Vector2(x * Tile.Size.Length(), y * Tile.Size.Length()), Enemy.FaceDirection.Left);
-
+                    return CreateRunner(new Vector2(x * Tile.Size.X, y * Tile.Size.Y), Enemy.FaceDirection.Left);
+                case 'D':
+                    return CreateGoblin(new Vector2(x * Tile.Size.X, y * Tile.Size.Y), Enemy.FaceDirection.Right);
+                case 'd':
+                    return CreateGoblin(new Vector2(x * Tile.Size.X, y * Tile.Size.Y), Enemy.FaceDirection.Left);
                 default:
                     return null;
             }
         }
 
         // building block of runner enemy
-        private Runner LoadRunner(Vector2 loc, Enemy.FaceDirection dir)
+        private Runner CreateRunner(Vector2 loc, Enemy.FaceDirection dir)
         {
             float maxHealth = 100;
             Vector2 spd = new Vector2(2, 0);
 
             // create each enemy
-            return new Runner(content, graphicsDevice, Enemy.EnemeyState.Walk, loc, dir, maxHealth, spd);
+            return new Runner(content, graphicsDevice, Enemy.EnemyState.Active, loc, dir, maxHealth, spd);
         }
 
+        // building block for goblin enemy
+        private Goblin CreateGoblin(Vector2 loc, Enemy.FaceDirection dir)
+        {
+            float maxHealth = 60;
+            Vector2 spd = new Vector2(0, 0); // they don't move
+
+            lvlFireBalls[((int)(loc.X / Tile.Size.Y), (int)(loc.Y / Tile.Size.Y))] = new List<FireBall>();
+
+            // create each enemy
+            return new Goblin(content, graphicsDevice, Enemy.EnemyState.Active, loc, dir, maxHealth, spd);
+        }
+
+        // load all content in the level
         public void LoadContent()
         {
             LoadTiles(TitleContainer.OpenStream("Content/Levels/" + levelNum + "/Tiles" + ".txt"));
@@ -237,9 +289,19 @@ namespace PASS3
         // updates the level and player
         public void UpdateLevel(GameTime gameTime)
         {
-            player.Update(gameTime, tiles, enemies);
-
             UpdateEnemies(gameTime);
+
+            player.Update(gameTime, tiles, enemies, lvlFireBalls);
+
+            // check if player reach next level
+            if (player.PlayerNextLvl())
+            {
+                isNextLvl = true;
+            }
+            if (player.IsDead())
+            {
+                isPlayerDead = true;
+            }
         }
 
         private void UpdateEnemies(GameTime gameTime)
@@ -250,7 +312,34 @@ namespace PASS3
                 {
                     if (enemies[x, y] != null)
                     {
-                        ((Runner)(enemies[x, y])).Update(gameTime, tiles);
+                        // tempuary damage variable
+                        int enemyReward = 0;
+
+                        if ((enemies[x, y]) is Runner)
+                        {
+                            ((Runner)(enemies[x, y])).Update(gameTime, tiles);
+
+                            enemyReward = ((Runner)(enemies[x, y])).GetReward();
+                        }
+                        else if ((enemies[x, y]) is Goblin)
+                        {
+                            ((Goblin)(enemies[x, y])).Update(gameTime, tiles);
+
+                            // hash the goblin ID by cords, and save their lvlFireBalls
+                            lvlFireBalls[(x, y)] = ((Goblin)enemies[x, y]).GetFireBalls;
+
+                            enemyReward = ((Goblin)(enemies[x, y])).GetReward();
+                        }
+
+
+                        if (enemies[x, y].IsDead && enemies[x, y].IsReward)
+                        {
+                            player.Score = player.Score + enemyReward;
+
+                            enemies[x, y].IsReward = true;
+
+                            //Console.WriteLine(player.Score);
+                        }
                     }
                 }
             }
@@ -258,13 +347,9 @@ namespace PASS3
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Begin();
-
             DrawTiles(spriteBatch);
 
             DrawEnemies(spriteBatch);
-
-            spriteBatch.End();
         }
 
         // draws the tiles of the level
@@ -290,10 +375,29 @@ namespace PASS3
                 {
                     if (enemies[x, y] != null)
                     {
-                        enemies[x, y].Draw(spriteBatch);
+                        if (enemies[x, y] is Runner)
+                        {
+                            ((Runner)enemies[x, y]).Draw(spriteBatch);
+                        }
+                        else if (enemies[x, y] is Goblin)
+                        {
+                            ((Goblin)enemies[x, y]).Draw(spriteBatch);
+                        }
                     }
                 }
             }
+        }
+
+        // tells the game1 to move onto next lvl
+        public bool NextLvl()
+        {
+            return isNextLvl;
+        }
+
+        // tells gameone to return to game over screen
+        public bool IsPlayerDead()
+        {
+            return isPlayerDead;
         }
 
     }

@@ -26,6 +26,11 @@ namespace PASS3
         // is only passable when the player is under it
         Platform = 2,
 
+        // player just dies when they hit it
+        Spike = 3,
+
+        // exit sign
+        Exit = 4
     }
 
     public class Tile
