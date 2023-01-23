@@ -4,23 +4,29 @@
 //Created Date: Dec. 18, 2022
 //Modified Date: Jan 22, 2023
 //Description: Supposed to be plat-former which the player goal is to "finish" (which they cant), with the highest score by killed mobs and completing levels.
+
 // Variables: stored all types of variables (int, vector2, rectangle...), with different access modifiers (public, private, protected), and as consts. 
-// The naming of variables reflects the general purpose of the variable (ex, playerSpd)
+// Most* naming of variables reflects the general purpose of the variable (ex, playerSpd)
 // Arrays: used arrays to store similar variables together for instance, animations for the runner. Where the index of each animation in the array was a state.
 // If Statements: used to check what types of mobs an enemy was. Else if was checking for priority of hitbox collision  of the player. Also used logic operators (? && ||) in such lines
 // Switch: quickly switch between game states
 // Methods: used in every class, to help organize common logic (loading assets, updating...)
 // Functions: used to return values to there methods and classes (tileManger)
 // For loops: used to iterate through txt files to locate certain tiles (chars)
+// Animations: animations for most assets (player, mob, fireball)
+// Timers: used timers for delays between immune of player and fireball shots
+// Sound; No sound used
 
 // NOTE: I know this project is unfinished, and it is no where near what I initially promised.
-// I know there is code half done, useless variables, classes, horrible organization and poor implementation of logic. 
+// I know there is code half done, useless variables, misspelling, classes, horrible organization and poor implementation of logic. 
 // But sadly I just can not bring myself to finish the game, due to personal reasons and stress. Or in other words "I have simply gave up"
 // Though I do care about the marks, and the mark I expect to get from this is no where near my standards. I lack motivation and reason to complete the game. 
-// It has become a chore.
+// It has become a chore. 
 // 
 // In some ways, I feel sad that I could not finish the game. In others I felt that I have let down myself, you Mr.Lane, and even some other students who expected me to create something great
 // If you were expecting a completed game, and high expectation. I'm Sorry.
+//
+// ** if you want to play test, if you die you have to re run the game, since I did complete the basic game states.
 //
 // It was fun learning in your class, and I truly learned a lot about c#. Though OOP did cause me issues, I have most of it to blame on myself. For biting more then I can chew, and a lack of organization of ideas/time
 // Even if I had more time, I would not even want to finish the game. 
