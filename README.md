@@ -7,14 +7,14 @@ Use VS 2019 or VS 2017 with monogame installed
 Open as a VS project and run as debug from the IDE
 
 ## Features
-Full movement - WASD
-Platforming
-Partical system
-  Blood that you can shoot from characters
-  When shooting you lose health
-Enemeies
-  Runner
-  Darter
+* Full movement - WASD
+* Platforming
+* Partical system
+  * Blood that you can shoot from characters
+  * When shooting you lose health
+* Enemeies
+  * Runner
+  * Darter
   
 
 ## Notice
