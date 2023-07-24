@@ -15,7 +15,8 @@ Open as a VS project and run as debug from the IDE
 * Enemeies
   * Runner
   * Darter
-  
+* Block mapping system
+  * Use of spritesheet and txt mapping
 
 ## Notice
 The game is not complete and has no plan on completion
