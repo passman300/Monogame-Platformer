@@ -1,6 +1,6 @@
 # Monogame-Platformer
 
-School project of 2d platformer on the monogame engine
+2D platformer roguelite on the monogame engine
 
 ## Running
 Use VS 2019 or VS 2017 with monogame installed
@@ -15,7 +15,7 @@ Open as a VS project and run as debug from the IDE
 * Enemeies
   * Runner
   * Darter
-* Block mapping system
+* Custome tile and Mapping engine from scratch
   * Use of spritesheet and txt mapping
 
 ## Notice
