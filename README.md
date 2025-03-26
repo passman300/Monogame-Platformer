@@ -14,8 +14,4 @@ Open as a VS project and run as debug from the IDE
 * Enemies
   * Runner
   * Darter
-* Custome Tile and Mapping From scratch
-
-## Notice
-The game is not complete and has no plan on completion
-Once reaching the 4th lvl, the game ends
+* Custom tile and Mapping From scratch
